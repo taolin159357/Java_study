@@ -4,15 +4,17 @@
 
 * 每个子类的构造函数的第一句话，都默认调用父类的无参构造函数super()，super语句必须放在第一条；
 
+
+
+
+
 ##### 嵌套类
 
 ![](80.png)
 
-![](81.png)
+![](83.png)
 
 ![](82.png)
-
-![](83.png)
 
 ```java
 		//创建Dog实例(静态的成员内部类):
@@ -50,11 +52,53 @@
 }
 ```
 
+![](81.png)
+
+```java
+// 匿名内部类主要用于实现接口或继承父类，并且只需要使用一次的场景。
+public class AnonymousInnerClassExample {  
+    public static void main(String[] args) {  
+        // 创建一个Thread对象，并传递一个实现了Runnable接口的匿名内部类实例  
+        Thread thread = new Thread(new Runnable() {  
+            @Override  
+            public void run() {  
+                // 线程执行的代码  
+                System.out.println("线程正在运行...");  
+                try {  
+                    // 模拟耗时任务  
+                    Thread.sleep(1000);  
+                } catch (InterruptedException e) {  
+                    e.printStackTrace();  
+                }  
+                System.out.println("线程运行结束！");  
+            }  
+        });  
+  
+        // 启动线程  
+        thread.start();  
+  
+        // 主线程继续执行后续代码（可能同时执行，取决于操作系统调度）  
+        System.out.println("主线程继续执行...");  
+    }  
+}
+```
+
 ![](84.png)
 
 ![](85.png)
 
+
+
+
+
 * 派生类继承抽象类，若没有实现基类中的所有abstract方法，那么派生类也必须被定义为抽象类；实现接口，就必须实现所有未实现的方法，如果没有全部实现，那么只能成为一个抽象类；接口没有构造函数和main函数，抽象类可以有main函数且能运行；
+
+
+
+
+
+* Java 8中接口的主要新特性：
+  1. **默认方法（Default Methods）**：在Java 8之前，接口只能包含抽象方法。然而，在Java 8中，接口除了抽象方法之外，还可以定义默认方法。默认方法是使用`default`关键字修饰的实例方法，它可以被实现类调用或重写。实现类必须实现（`implements`）接口才能调用该接口的默认方法。如果实现类实现了多个接口，并且这些接口中存在相同签名的默认方法，那么实现类必须重写该方法以明确方法定义。
 
 ![](31.png)
 
@@ -62,16 +106,116 @@
 
 ![](32.png)
 
+2. **静态方法（Static Methods）**：Java 8的接口中还可以定义静态方法。静态方法是属于接口的静态方法，它不能被子类继承，只能通过接口名称来调用。
+
 ![](34.png)
 
-![](35.png)
+3. **函数式接口（Functional Interfaces）**：只包含一个抽象方法的接口被称为函数式接口。Java 8允许使用`@FunctionalInterface`注解来显式标记一个接口为函数式接口。这种接口可以被隐式地转换为Lambda表达式或方法引用的目标类型，使得代码更加简洁紧凑。
 
-1. JDK7及以前：只能定义全局常量和抽象方法全局常量：public static final的，但是书写时，可以省略不写抽象方法：public abstract的
-2. JDK8：除了定义全局常量和抽象方法之外，还可以定义静态方法、默认方法
+   Java Lambda表达式的一个重要用法是简化某些匿名内部类（Anonymous Classes）的写法。实际上Lambda表达式并不仅仅是匿名内部类的语法糖，JVM内部是通过invokedynamic指令来实现Lambda表达式的。
+
+![](46.png)
+
+![](47.png)
+
+* 能够使用Lambda的依据是必须有相应的函数接口（函数接口，是指内部只有一个抽象方法的接口），@FunctionalInterface注解加在代码上，编译器会帮你检查接口是否符合函数接口规范
+
+* Lambda表达式另一个依据是类型推断机制，在上下文信息足够的情况下，编译器可以推断出参数表的类型，而不需要显式指名
+
+![](48.png)
+
+![](49.png)
+
+> java内置的4大核心函数式接口
+>
+> * 消费型接口 Consumer<T>     void accept(T t)
+>
+> * 供给型接口 Supplier<T>     T get()
+>
+> * 函数型接口 Function<T,R>   R apply(T t)
+>
+> * 断定型接口 Predicate<T>    boolean test(T t)
+
+* 诸如String::length的语法形式叫做方法引用（method references），如果Lambda表达式的全部内容就是调用一个已有的方法，那么可以用方法引用来替代Lambda表达式
+
+  ```java
+  // 使用Consumer接口  
+  Consumer<String> greet = message -> System.out.println("Hello, " + message);  
+  greet.accept("World");  // 输出 "Hello, World"  
+    
+  // 使用Function接口  
+  Function<Integer, Integer> square = x -> x * x;  
+  int result = square.apply(5);  // 结果为25
+  ```
+
+> __方法引用类别__				__举例__
+> 引用静态方法				Integer::sum
+> 引用某个对象的方法	list::add
+> 引用某个类的方法		String::length
+> 引用构造方法				HashMap::new
+
+###### 
+
+
+
+* 在Java中，直到Java 9之前，接口中的方法都是隐式抽象的，并且接口不能包含私有方法。然而，从Java 9开始，接口引入了私有方法（包括私有实例方法和私有静态方法）的概念。
+
+  1. 私有实例方法可以在接口内部被其他接口方法（包括默认方法和静态方法）调用，但不能被接口的实现类直接调用。这允许接口内部实现一些辅助逻辑，同时保持接口的简洁性。
+
+     ```java
+     public interface MyInterface {  
+         void publicMethod();  
+       
+         default void defaultMethod() {  
+             System.out.println("Default method is called");  
+             privateMethod(); // 调用私有方法  
+         }  
+     
+       // 在这个例子中，privateMethod是一个私有实例方法，只能在MyInterface内部被调用，比如在defaultMethod中。
+         private void privateMethod() {  
+             System.out.println("Private method is called");  
+         }  
+     }  
+       
+     // 实现类  
+     public class MyInterfaceImpl implements MyInterface {  
+         @Override  
+         public void publicMethod() {  
+             System.out.println("Public method of implementation is called");  
+             // MyInterfaceImpl 无法直接调用 privateMethod()，因为它是私有的  
+         }  
+     }
+     ```
+
+  2. 私有静态方法也可以在接口内部被其他接口方法调用，并且它们不会与接口的实现类产生任何关联。私有静态方法通常用于包含与接口状态无关的通用工具代码。
+
+     ```java
+     public interface MyInterface {  
+         static int add(int a, int b) {  
+             return addHelper(a, b); // 调用私有静态方法  
+         }  
+       
+         private static int addHelper(int a, int b) {  
+             return a + b;  
+         }  
+     }  
+       
+     // 使用  
+     int sum = MyInterface.add(2, 3); // 输出 5  
+     // MyInterface.addHelper(2, 3) 是不可调用的，因为它是私有的
+     ```
+
+     
+
+
+
+
+
+* 静态方法需要调用才会执行，执行顺序：static块>匿名块>构造函数；
 
 ![](36.png)
 
-* 静态方法需要调用才会执行，执行顺序：static块>匿名块>构造函数；
+
 
 
 
@@ -96,8 +240,6 @@
 
 ![](5.png)
 
-
-
 * 不可变对象一旦创建，这个对象(状态/值)不能被更改了，如八个基本型别的包装类的对象，String,BigInteger和BigDecimal等的对象；
 
 > 1. 当对字符串重新赋值时，需要重写指定内存区域赋值，不能使用原有的value进行赋值。
@@ -110,9 +252,13 @@
 
 
 
+
+
 ##### 访问规则 #####
 
 ![](7.png)
+
+
 
 
 
@@ -123,8 +269,6 @@
 ![](9.png)
 
 ![](10.png)
-
-
 
 * 使用try-catch-finally处理编译时异常，是得程序在编译时就不再报错，但是运行时仍可能报错，相当于我们使用try-catch-finally将一个编译时可能出现的异常，延迟到运行时出现；也即是说try必须有，catch和finally至少要有一个，finally必执行，catch块的异常匹配是从上而下执行的，并且只能进入一个catch块；finally中声明的是一定会被执行的代码，即使catch中又出现异常了；针对于编译时异常，我们说一定要考虑异常的处理。
 
@@ -137,8 +281,6 @@
 ![](11.png)
 
 ![](12.png)
-
-
 
 * 在方法内部程序中，用throw抛出异常；在方法头部声明中，用throws。
 
@@ -182,8 +324,6 @@ public class ReturnExceptionDemo {
 
 * 可以抛出的异常必须是 Throwable 或其子类的实例，此语句在编译时将会产生语法错误：throw new String("want to throw")
 
-
-
 ![](13.png)
 
 > 如何自定义异常类？
@@ -209,6 +349,8 @@ public class MyException extends Exception{
 
 
 
+
+
 ##### 数据结构
 
 * Collection接口：单列集合，用来存储一个一个的对象
@@ -228,8 +370,6 @@ public class MyException extends Exception{
   * Hashtable:作为古老的实现类；线程安全的，效率低；不能存储null的key和value
   * Properties:常用来处理配置文件。key和value都是String类型
 
-
-
 ###### Collection
 
 * 向Collection接口的实现类的对象中添加数据obj时，要求obj所在类要重写equals()
@@ -242,15 +382,11 @@ public class MyException extends Exception{
 
 * 使用 foreach 循环遍历集合元素，遍历集合的底层调用Iterator完成操作。
 
-
-
 ###### List
 
 * 建议开发中使用带参的构造器：ArrayList list = new ArrayList(int capacity)
 
 * jdk7中的ArrayList的对象的创建类似于单例的饿汉式，开始就创建了数组的长度，而jdk8中的ArrayList的对象的创建类似于单例的懒汉式，延迟了数组的创建，节省内存。
-
-
 
 ###### Set
 
@@ -259,8 +395,6 @@ public class MyException extends Exception{
 * 重写两个方法的小技巧：对象中用作 equals() 方法比较的 Field，都应该用来计算 hashCode 值。
 
 * 向TreeSet中添加的数据，要求是相同类的对象，不可以容纳null元素
-
-
 
 ###### Map
 
@@ -275,6 +409,8 @@ public class MyException extends Exception{
     * 如果key1的哈希值和已经存在的某一个数据(key2-value2)的哈希值相同，继续比较：调用key1所在类的equals(key2)方法比较
       * 如果equals()返回false:此时key1-value1添加成功
       * 如果equals()返回true:使用value1替换value2
+
+
 
 
 
@@ -295,29 +431,17 @@ private static native void registerNatives();
 
 * getClass()方法返回当前运行时的类Class，即当前调用getClass()方法的对象对应的Class（字节码）。这个方法一般在反射场景中使用。
 
- 
-
 * hashCode()方法返回值是当前调用hashCode()方法的对象其内存地址所对应的的哈希值（hash value），并且这个方法在那些底层通过哈希表（hash table）实现的集合有很重要的意义，这个方法一般搭配equals()方法使用。
-
- 
 
 * toString()方法用于返回对象的字符串表示形式，Object类中的toString()方法返回的字符串形式为类全名@内存地址，建议所有的子类都重写toString()方法，因为toString()方法的初衷就是返回一个字符串，并且我们能够很容易的通过这个字符串来区别同一个类下的对象。
 
- 
-
 * equals()方法用于判断两个对象是否相等，Object类中的equals方法默认判断两个对象的地址引用是否相等。在实际开发中，一般需要根据业务逻辑重写equals方法，根据对象的属性值来判断两个对象在业务逻辑上是否相等。
-
- 
 
 * notify()方法使用了native特征修饰符修饰，表示该方法使用了其他语言来实现，所以我们看不到notify()方法的具体实现，但是通过notify()方法的注释，我们可以得知notify方法用于唤醒因线程同步进入阻塞状态的任意一个线程。
 
- 
-
 * notifyAll()方法和notify()方法基本差不多，不同的是notifyAll()方法不仅仅只唤醒一个因线程同步进入阻塞状态的线程，而是唤醒所有。
 
-* 注意：notify()方法和notifyAll()方法需要在同步代码块或者同步方法中使用，因为这两个方法就是用来唤醒因线程同步锁进入阻塞状态的线程，如果不在线程同步环境下，那么notify()方法和notifyAll()方法需要唤醒的阻塞线程是哪一个呢？说白了就是不明确需要唤醒因哪一个线程同步锁进入阻塞状态的线程。而且如果不在同步代码块或者同步方法内使用这两个方法，编译会报错。
-
- 
+  注意：notify()方法和notifyAll()方法需要在同步代码块或者同步方法中使用，因为这两个方法就是用来唤醒因线程同步锁进入阻塞状态的线程，如果不在线程同步环境下，那么notify()方法和notifyAll()方法需要唤醒的阻塞线程是哪一个呢？说白了就是不明确需要唤醒因哪一个线程同步锁进入阻塞状态的线程。而且如果不在同步代码块或者同步方法内使用这两个方法，编译会报错。
 
 * wait(long)方法是native修饰的，即具体实现过程由其他语言（如C、C++）来实现。虽然我们不能通过源码来了解wait(long)方法的作用，但是我们可以通过注释来了解wait(long)方法的功能或者作用，从注释上可以知道，wait()方法的执行可以让当前正在执行的线程进入阻塞状态，直到其他线程调用notify()或者notifyAll()方法来唤醒这个线程，或者当过了timeout毫秒之后，自动从阻塞状态进入就绪状态。注意：wait()方法是同步监视器调用的，而不是线程本身调用的，同时也要弄清楚线程和同步监视器之间的关系。
 
@@ -325,13 +449,13 @@ private static native void registerNatives();
 
 * wait(long, int)方法其实是对线程的等待时间timeout进行了更加精细的控制。
 
-
-
 * finalize() : void：当垃圾回收机制（Garbage Collection）确认了一个对象没有被引用时，那么垃圾回收机制就会回收这个对象，并在回收的前一刻这个对象调用finalize()方法，这类似C++中的析构函数，我们可以重写对象的finalize()方法来研究垃圾回收机制回收对象的过程。
 
- 
-
 * clone()方法用于克隆当前对象，克隆分为浅克隆和深克隆。Object类中的clone()方法是浅克隆对象，所以一般需要实现Cloneable接口，并重写clone方法，当复制的属性是引用数据类型时，进行递归克隆（基本数据类型直接复制一份，引用数据类型递归调用clone方法），重写完clone方法才实现真正意义上的克隆。
+
+
+
+
 
 ###### String
 
@@ -345,6 +469,10 @@ private static native void registerNatives();
   * StringBuilder:可变的字符序列；jdk5.0新增的，线程不安全的，效率高；底层使用char[]存储
 
 * 对比String、StringBuffer、StringBuilder三者的效率，从高到低排列：StringBuilder > StringBuffer > String
+
+
+
+
 
 ###### 日期类
 
@@ -525,6 +653,10 @@ JUNE
         System.out.println(accessor);{MinuteOfHour=52, MilliOfSecond=0, HourOfAmPm=3, MicroOfSecond=0, NanoOfSecond=0, SecondOfMinute=9},ISO resolved to 2019-02-18
 ```
 
+
+
+
+
 ###### 比较类
 
 * 如何实现比较对象的大小？使用两个接口中的任何一个：Comparable 或 Comparator
@@ -548,6 +680,10 @@ JUNE
             }
         });
 ```
+
+
+
+
 
 ###### 枚举类
 
@@ -682,6 +818,10 @@ WINTER
 大约在冬季
 ```
 
+
+
+
+
 ###### 其他类
 
 * System，Math，BigInteger 和 BigDecimal
@@ -721,9 +861,17 @@ String javaVersion = System.getProperty("java.version");
 1130.4864545454545454545454545
 ```
 
+
+
+
+
 ##### 编译器API
 
 ![](66.png)
+
+
+
+
 
 ##### 文件和I/O
 
@@ -1439,6 +1587,10 @@ Path path1 = Paths.get("d:\\nio", "hello.txt");
 }
 ```
 
+
+
+
+
 ##### 泛型
 
 * 泛型的类型必须是类，不能是基本数据类型，需要用到基本数据类型的位置，拿包装类替换
@@ -1558,6 +1710,10 @@ List<Object> list1 = null;
 ![](56.png)
 
 ![](57.png)
+
+
+
+
 
 ##### 反射
 
@@ -1855,6 +2011,10 @@ Nike工厂生产一批运动服
 }
 ```
 
+
+
+
+
 ##### 注解
 
 * Annotation 其实就是代码里的特殊标记, 这些标记可以在编译, 类加载, 运行时被读取, 并执行相应的处理。通过使用 Annotation，程序员可以在不改变原有逻辑的情况下, 在源文件中嵌入一些补充信息。
@@ -1932,283 +2092,9 @@ son
 
 ![](79.png)
 
-##### 多线程
-
-###### 1. 线程的创建
-
-* > Thread中的常用方法：
-  >  * 1. start():启动当前线程；调用当前线程的run()
-  >  * 2. run(): 通常需要重写Thread类中的此方法，将创建的线程要执行的操作声明在此方法中
-  >  * 3. currentThread():静态方法，返回执行当前代码的线程
-  >  * 4. getName():获取当前线程的名字
-  >  * 5. setName():设置当前线程的名字
-  >  * 6. yield():释放当前cpu的执行权
-  >  * 7. join():在线程a中调用线程b的join(),此时线程a就进入阻塞状态，直到线程b完全执行完以后，线程a才结束阻塞状态。
-  >  * 8. stop():已过时。当执行此方法时，强制结束当前线程。
-  >  * 9. sleep(long millitime):让当前线程“睡眠”指定的millitime毫秒。在指定的millitime毫秒时间内，当前线程是阻塞状态。
-  >  * 10. isAlive():判断当前线程是否存活
-  >
-  >   线程的优先级：
-  >
-  >  * 1. MAX_PRIORITY：10，MIN _PRIORITY：1，NORM_PRIORITY：5  -->默认优先级
-  >  * 2. 如何获取和设置当前线程的优先级：getPriority():获取线程的优先，setPriority(int p):设置线程的优先级
-  >  * 3. 说明：高优先级的线程要抢占低优先级线程cpu的执行权。但是只是从概率上讲，高优先级的线程高概率的情况下被执行。并不意味着只有当高优先级的线程执行完以后，低优先级的线程才执行。
-
-* Java 提供了创建线程的方法：
-
-  * 通过实现 Runnable 接口；
-
-  * 通过继承 Thread 类本身；
-
-  * 通过 Callable 和 Future 创建线程；
-
-    * ```java
-      public class CallableThreadTest implements Callable<Integer> {
-          public static void main(String[] args)  
-          {  
-              CallableThreadTest ctt = new CallableThreadTest();  
-              FutureTask<Integer> ft = new FutureTask<>(ctt);  
-              for(int i = 0;i < 100;i++)  
-              {  
-                  System.out.println(Thread.currentThread().getName()+" 的循环变量i的值"+i);  
-                  if(i==20)  
-                  {  
-                      new Thread(ft,"有返回值的线程").start();  
-                  }  
-              }  
-              try  
-              {  
-                  System.out.println("子线程的返回值："+ft.get());  
-              } catch (InterruptedException e)  
-              {  
-                  e.printStackTrace();  
-              } catch (ExecutionException e)  
-              {  
-                  e.printStackTrace();  
-              }  
-        
-          }
-          @Override  
-          public Integer call() throws Exception  
-          {  
-              int i = 0;  
-              for(;i<100;i++)  
-              {  
-                  System.out.println(Thread.currentThread().getName()+" "+i);  
-              }  
-              return i;  
-          }  
-      }
-      ```
-
-    * 如何理解实现Callable接口的方式创建多线程比实现Runnable接口创建多线程方式强大？
-
-      * call()可以有返回值的。
-      * call()可以抛出异常，被外面的操作捕获，获取异常的信息
-      * Callable是支持泛型的
-
-  * 使用线程池
-  
-    * JDK 5.0起提供了线程池相关API：ExecutorService 和 Executors
-  
-    * > Executors：工具类、线程池的工厂类，用于创建并返回不同类型的线程池
-      >
-      > * Executors.newCachedThreadPool()：创建一个可根据需要创建新线程的线程池
-      >
-      > * Executors.newFixedThreadPool(n); 创建一个可重用固定线程数的线程池
-      >
-      > * Executors.newSingleThreadExecutor() ：创建一个只有一个线程的线程池
-      >
-      > * Executors.newScheduledThreadPool(n)：创建一个线程池，它可安排在给定延迟后运行命令或者定期地执行
-      >
-      > ExecutorService：真正的线程池接口。常见子类ThreadPoolExecutor
-      >
-      > * void execute(Runnable command)：执行任务/命令，没有返回值，一般用来执行Runnable
-      >
-      > * <T> Future<T> submit(Callable<T> task)：执行任务，有返回值，一般又来执行Callable
-      >
-      > * void shutdown() ：关闭连接池
-      
-    * ```java
-      class NumberThread implements Runnable{
-      
-          @Override
-          public void run() {
-              for(int i = 0;i <= 100;i++){
-                  if(i % 2 == 0){
-                      System.out.println(Thread.currentThread().getName() + ": " + i);
-                  }
-              }
-          }
-      }
-      
-      class NumberThread1 implements Runnable{
-      
-          @Override
-          public void run() {
-              for(int i = 0;i <= 100;i++){
-                  if(i % 2 != 0){
-                      System.out.println(Thread.currentThread().getName() + ": " + i);
-                  }
-              }
-          }
-      }
-      
-      public class ThreadPool {
-      
-          public static void main(String[] args) {
-              //1. 提供指定线程数量的线程池
-              ExecutorService service = Executors.newFixedThreadPool(10);
-      
-              ThreadPoolExecutor service1 = (ThreadPoolExecutor) service;
-              //设置线程池的属性
-      //        System.out.println(service.getClass());
-      //        service1.setCorePoolSize(15);
-      //        service1.setKeepAliveTime();线程没有任务时多长时间会终止
-      
-      
-              //2.执行指定的线程的操作。需要提供实现Runnable接口或Callable接口实现类的对象
-              service.execute(new NumberThread());//适合适用于Runnable
-              service.execute(new NumberThread1());//适合适用于Runnable
-      
-      //        service.submit(Callable callable);//适合使用于Callable
-      
-              //3.关闭连接池
-              service.shutdown();
-          }
-      
-      }
-      ```
-
-###### 2. 线程的生命周期
-
-![](86.png)
-
-###### 3. 线程的同步
-
-* 同步代码块：synchronized(同步监视器){//需要被同步的代码}
-
-* 同步方法：synchronized放在方法声明中，关于同步方法的总结：
-
-  * 同步方法仍然涉及到同步监视器，只是不需要我们显式的声明。
-  * 非静态的同步方法，同步监视器是：this
-  * 静态的同步方法，同步监视器是：当前类本身
-
-* Lock锁  --- JDK5.0新增
-
-  * ```java
-    class A{
-    	private final ReentrantLock lock = new ReentrantLock();
-    	public void m(){
-    		lock.lock();
-    		try{
-    		//保证线程安全的代码
-    		}finally{
-    			lock.unlock();
-    		}
-    	}
-    }
-    ```
-
-* 面试题：synchronized 与 Lock的异同？
-
-  * 相同：二者都可以解决线程安全问题
-
-  * 不同：synchronized机制在执行完相应的同步代码以后，自动的释放同步监视器；Lock需要手动的启动同步（lock()），同时结束同步也需要手动的实现（unlock()）
-
-* 优先使用顺序：Lock，同步代码块（已经进入了方法体，分配了相应资源），同步方法（在方法体之外）
-
-* ```java
-  //死锁
-  public class ThreadTest {
-  
-      public static void main(String[] args) {
-  
-          StringBuffer s1 = new StringBuffer();
-          StringBuffer s2 = new StringBuffer();
-  
-  
-          new Thread(){
-              @Override
-              public void run() {
-  
-                  synchronized (s1){
-  
-                      s1.append("a");
-                      s2.append("1");
-  
-                      try {
-                          Thread.sleep(100);
-                      } catch (InterruptedException e) {
-                          e.printStackTrace();
-                      }
-  
-                      synchronized (s2){
-                          s1.append("b");
-                          s2.append("2");
-  
-                          System.out.println(s1);
-                          System.out.println(s2);
-                      }
-                  }
-              }
-          }.start();
-  
-          new Thread(new Runnable() {
-              @Override
-              public void run() {
-                  synchronized (s2){
-  
-                      s1.append("c");
-                      s2.append("3");
-  
-                      try {
-                          Thread.sleep(100);
-                      } catch (InterruptedException e) {
-                          e.printStackTrace();
-                      }
-                      synchronized (s1){
-                          s1.append("d");
-                          s2.append("4");
-  
-                          System.out.println(s1);
-                          System.out.println(s2);
-                      }
-                  }
-              }
-          }).start();
-      }
-  }
-  ```
 
 
-###### 4. 线程的通信
 
-* 涉及到的三个方法：
-  * wait()：一旦执行此方法，当前线程就进入阻塞状态，并释放同步监视器。
-
-  * notify()：一旦执行此方法，就会唤醒被wait的一个线程。如果有多个线程被wait，就唤醒优先级高的那个。
-
-  * notifyAll()：一旦执行此方法，就会唤醒所有被wait的线程。
-
-* 说明：
-
-  * wait()，notify()，notifyAll()三个方法必须使用在同步代码块或同步方法中。
-
-  * wait()，notify()，notifyAll()三个方法的调用者必须是同步代码块或同步方法中的同步监视器。否则，会出现IllegalMonitorStateException异常
-
-  * wait()，notify()，notifyAll()三个方法是定义在java.lang.Object类中。
-
-* 面试题：sleep() 和 wait()的异同？
-
-  * 相同点
-    * 一旦执行方法，都可以使得当前的线程进入阻塞状态。
-  * 不同点
-    * 两个方法声明的位置不同：Thread类中声明sleep() , Object类中声明wait()
-
-    * 调用的要求不同：sleep()可以在任何需要的场景下调用。 wait()必须使用在同步代码块或同步方法中
-
-    * 关于是否释放同步监视器：如果两个方法都使用在同步代码块或同步方法中，sleep()不会释放锁，wait()会释放锁。
 
 ##### 网络编程
 
@@ -2667,6 +2553,10 @@ son
   }
   ```
 
+
+
+
+
 ##### 语法糖
 
 ###### 1. foreach
@@ -2733,40 +2623,7 @@ son
 
 ![](45.png)
 
-###### 11. Lambda表达式
-
-* Java Lambda表达式的一个重要用法是简化某些匿名内部类（Anonymous Classes）的写法。实际上Lambda表达式并不仅仅是匿名内部类的语法糖，JVM内部是通过invokedynamic指令来实现Lambda表达式的。
-
-![](46.png)
-
-![](47.png)
-
-* 能够使用Lambda的依据是必须有相应的函数接口（函数接口，是指内部只有一个抽象方法的接口），@FunctionalInterface注解加在代码上，编译器会帮你检查接口是否符合函数接口规范
-* Lambda表达式另一个依据是类型推断机制，在上下文信息足够的情况下，编译器可以推断出参数表的类型，而不需要显式指名
-
-![](48.png)
-
-![](49.png)
-
-> java内置的4大核心函数式接口
->
-> * 消费型接口 Consumer<T>     void accept(T t)
->
-> * 供给型接口 Supplier<T>     T get()
->
-> * 函数型接口 Function<T,R>   R apply(T t)
->
-> * 断定型接口 Predicate<T>    boolean test(T t)
-
-* 诸如String::length的语法形式叫做方法引用（method references），如果Lambda表达式的全部内容就是调用一个已有的方法，那么可以用方法引用来替代Lambda表达式
-
-> __方法引用类别__				__举例__
-> 引用静态方法				Integer::sum
-> 引用某个对象的方法	list::add
-> 引用某个类的方法		String::length
-> 引用构造方法				HashMap::new
-
-###### 12. Stream API
+###### 11. Stream API
 
 * Stream关注的是对数据的运算，与CPU打交道；集合关注的是数据的存储，与内存打交道
 
@@ -2828,6 +2685,23 @@ son
     }
 ```
 
+* 并行流（Parallel Stream）是Java 8中引入的一种处理大量数据的机制，它利用多核处理器的优势，通过并行执行操作来提高处理大量数据的性能。具体来说，并行流是将一个内容（如集合）分成多个数据块，并使用不同的线程分别处理每个数据块的流。
+
+  Java并行流基于Fork/Join框架实现，其实现原理如下：
+
+  1. 拆分数据：当并行流操作开始时，数据会被拆分成多个小块，每个小块都会被分配给不同的线程去处理。
+  2. 执行任务：每个线程会独立地执行自己的任务。在这个过程中，线程可能会使用Fork/Join框架将自己的任务拆分成更小的子任务，并将这些子任务分配给其他线程。
+  3. 合并结果：当所有线程完成任务后，它们会将自己的结果合并到一起。这个过程类似于reduce操作，但它是并行的。
+
+  在Java中，创建并行流非常简单，只需使用`parallelStream()`方法将集合或流转换为并行流即可。例如：
+
+
+  ```java
+  List<Integer> numbers = Arrays.asList(1, 2, 3, 4, 5, 6, 7, 8, 9, 10);
+  Stream<Integer> parallelStream = numbers.parallelStream();
+  ```
+  需要注意的是，尽管并行流可以提高处理大量数据的性能，但它并不总是比顺序流更快。在某些情况下，由于线程调度和合并结果等开销，并行流可能会比顺序流更慢。因此，在选择使用并行流还是顺序流时，需要根据具体的情况和需求进行权衡。
+
 * collect()方法定义为<R> R collect(Supplier<R> supplier, BiConsumer<R,? super T> accumulator, BiConsumer<R,R> combiner)，三个参数依次对应上述三条分析。不过每次调用collect()都要传入这三个参数太麻烦，收集器Collector就是对这三个参数的简单封装,所以collect()的另一定义为<R,A> R collect(Collector<? super T,A,R> collector)。Collectors工具类可通过静态方法生成各种常用的Collector。
 
 ```java
@@ -2872,7 +2746,7 @@ Stream<String> stream = Stream.of("I", "love", "you");
 String joined = stream.collect(Collectors.joining(",", "{", "}"));// "{I,love,you}"
 ```
 
-###### 13. Optional
+###### 12. Optional
 
 * Optional类：为了在程序中避免出现空指针异常而创建的。
 
@@ -2946,3 +2820,133 @@ if (optional1.isPresent()){
         String name = Optional.ofNullable(nullName).orElseGet(() -> "john");
 ```
 
+###### 13.反应式编程
+
+* JDK 9 引入了 `java.util.concurrent.Flow` 接口作为反应式编程的基础，这个接口定义了响应式流的API，尽管它不像一些其他的反应式编程库（如Reactor或RxJava）那样完整或功能丰富。`Flow` 接口主要用于异步数据流的处理，它提供了发布者（Publisher）和订阅者（Subscriber）之间的契约。
+
+  以下是 `Flow` 接口的主要组件和概念：
+
+  1. **Publisher**：这是数据流的源。它负责生成数据项，并在有订阅者时发送这些数据项。发布者可以是有界的（即，它知道何时完成数据流的发送）或无界的（即，它可以无限期地发送数据项）。
+  2. **Subscriber**：这是数据流的消费者。它订阅发布者并接收发布的数据项。订阅者可以请求特定数量的数据项，并可以取消订阅以停止接收数据。
+  3. **Subscription**：这是连接发布者和订阅者的桥梁。它允许订阅者请求数据项，并可以取消订阅。发布者使用订阅对象来管理与其连接的订阅者。
+
+  以下是 `Flow` 接口中定义的一些主要方法：
+
+  * **Publisher**：
+    - `void subscribe(Subscriber<? super T> subscriber)`：此方法允许订阅者订阅此发布者。
+
+  * **Subscriber**：
+    - `void onSubscribe(Subscription s)`：当订阅关系建立时，由发布者调用此方法。
+    - `void onNext(T item)`：当发布者生成新的数据项时，它调用此方法将数据项发送给订阅者。
+    - `void onError(Throwable t)`：如果发布者遇到错误或无法继续生成数据项，它调用此方法通知订阅者。
+    - `void onComplete()`：当发布者完成数据流的发送时，它调用此方法通知订阅者。
+
+  * **Subscription**：
+    - `void request(long n)`：订阅者调用此方法请求数据项。`n` 表示订阅者希望接收的数据项数量。
+    - `void cancel()`：订阅者调用此方法取消订阅。
+
+  虽然 JDK 9 中的 `Flow` 接口为反应式编程提供了一个基本的框架，但许多开发者仍然选择使用像 Reactor 或 RxJava 这样的更高级别的库，因为它们提供了更丰富的功能和更易于使用的API。这些库提供了更多的操作符、错误处理机制以及与其他反应式系统的集成。
+
+  这个例子展示了如何创建一个简单的发布者（Publisher），它生成一系列整数，并有一个订阅者（Subscriber）来接收这些整数。
+
+  首先，需要创建发布者（Publisher）和订阅者（Subscriber）的实现。由于`Flow.Publisher`和`Flow.Subscriber`是接口，我们需要提供具体的实现。
+
+  ```java
+  import java.util.concurrent.Flow;
+  
+  public class ReactiveExample {
+  
+      // 自定义的发布者
+      static class IntegerPublisher implements Flow.Publisher<Integer> {
+          private final int max;
+          private Subscription subscription;
+  
+          public IntegerPublisher(int max) {
+              this.max = max;
+          }
+  
+          @Override
+          public void subscribe(Flow.Subscriber<? super Integer> subscriber) {
+              subscription = new IntegerSubscription(subscriber, max);
+              subscriber.onSubscribe(subscription);
+              ((IntegerSubscription) subscription).start(); // 假设我们在这里开始生成数据
+          }
+  
+          // 自定义的订阅关系
+          private static class IntegerSubscription implements Flow.Subscription {
+              private final Flow.Subscriber<? super Integer> subscriber;
+              private final int max;
+              private int count = 0;
+  
+              public IntegerSubscription(Flow.Subscriber<? super Integer> subscriber, int max) {
+                  this.subscriber = subscriber;
+                  this.max = max;
+              }
+  
+              // 假设这是开始发送数据的方法
+              public void start() {
+                  while (count < max && !subscriptionCancelled()) {
+                      subscriber.onNext(count++);
+                  }
+                  if (!subscriptionCancelled()) {
+                      subscriber.onComplete();
+                  }
+              }
+  
+              @Override
+              public void request(long n) {
+                  // 在这个简单的例子中，我们忽略了request的参数，因为我们假设发布者总是知道要发送多少数据
+              }
+  
+              @Override
+              public void cancel() {
+                  // 在这个例子中，我们没有实现取消的逻辑，但你可以在这里添加代码来取消订阅
+              }
+  
+              private boolean subscriptionCancelled() {
+                  // 在这个例子中，我们假设订阅不会被取消
+                  return false;
+              }
+          }
+      }
+  
+      // 自定义的订阅者
+      static class IntegerSubscriber implements Flow.Subscriber<Integer> {
+          @Override
+          public void onSubscribe(Flow.Subscription subscription) {
+              // 在这里可以设置初始的request数量，但在这个例子中我们假设发布者知道要发送多少数据
+              // subscription.request(Long.MAX_VALUE); // 如果需要的话
+          }
+  
+          @Override
+          public void onNext(Integer item) {
+              System.out.println("Received: " + item);
+          }
+  
+          @Override
+          public void onError(Throwable throwable) {
+              throwable.printStackTrace();
+          }
+  
+          @Override
+          public void onComplete() {
+              System.out.println("Completed");
+          }
+      }
+  
+      public static void main(String[] args) {
+          // 创建一个发布者，它将生成从0到4的整数
+          IntegerPublisher publisher = new IntegerPublisher(5);
+          // 创建一个订阅者
+          Flow.Subscriber<Integer> subscriber = new IntegerSubscriber();
+          // 订阅发布者
+          publisher.subscribe(subscriber);
+      }
+  }
+  ```
+
+  请注意，这个例子为了简化而省略了一些重要的细节，如错误处理和取消订阅的逻辑。在实际的应用中，你需要确保正确地处理这些场景。
+
+  此外，`IntegerSubscription.start()`方法被假设为启动发送数据的方法，但在实际的应用中，你可能需要在其他地方（例如在一个单独的线程中）触发数据的生成。同样，你可能需要实现`request(long n)`方法来根据订阅者的需求来发送数据。
+
+  这个简单的例子展示了如何使用JDK 9中的`Flow`接口来创建反应式流。然而，由于这个接口相当基础，许多开发者会选择使用更高级别的库（如Reactor或RxJava），它们提供了更丰富的功能和更易于使用的API。
